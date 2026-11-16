@@ -1,0 +1,8 @@
+{
+  "name": "poliscope",
+  "description": "Research US political money and influence with source-backed public records: campaign finance, lobbying, federal contracts, congressional trades, votes and SEC filings.",
+  "version": "1.0.0",
+  "author": { "name": "Poliscope", "url": "https://www.poliscope.org" },
+  "homepage": "https://www.poliscope.org/developers",
+  "license": "MIT"
+}

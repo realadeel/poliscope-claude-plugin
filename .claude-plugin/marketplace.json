@@ -1,0 +1,17 @@
+{
+  "name": "poliscope",
+  "owner": { "name": "Poliscope", "url": "https://www.poliscope.org" },
+  "metadata": {
+    "description": "Poliscope's Claude plugin: research US political money and influence with source-backed public records."
+  },
+  "plugins": [
+    {
+      "name": "poliscope",
+      "source": "./",
+      "description": "Research US political money and influence with source-backed public records: campaign finance, lobbying, federal contracts, congressional trades, votes and SEC filings.",
+      "version": "1.0.0",
+      "homepage": "https://www.poliscope.org/developers",
+      "license": "MIT"
+    }
+  ]
+}

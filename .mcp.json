@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "poliscope": {
+      "type": "http",
+      "url": "https://api.poliscope.org/mcp"
+    }
+  }
+}
