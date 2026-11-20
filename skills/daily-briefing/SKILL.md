@@ -1,7 +1,7 @@
 ---
 name: daily-briefing
 description: Generate a political influence briefing — top fundraisers and PACs, outside spending, dark money, lobbying and congressional trades
-argument-hint: [optional: topic focus, cycle, or "latest"]
+argument-hint: <optional topic focus, cycle, or "latest">
 ---
 
 # Political Influence Briefing
