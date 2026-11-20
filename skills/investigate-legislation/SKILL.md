@@ -1,81 +1,54 @@
 ---
 name: investigate-legislation
-description: Investigate a bill or policy area — sponsors, funding, lobbying, votes, and the interests behind legislation
-argument-hint: <bill ID like "HR-118-1234", topic, or policy area>
+description: Investigate a bill or policy area — sponsors, actions, votes, sponsor funding, lobbying citations and outside spending
+argument-hint: <bill ID like "HR-119-1234", a topic, or a policy area>
 ---
 
 # Investigate Legislation
 
-Research the interests behind: **$ARGUMENTS**
+Research: **$ARGUMENTS**
 
-## Step 1: Find the Bill(s)
+## Step 1: Find the bills
 
-- **By ID**: `get_bill` with bill_id (format: `TYPE-CONGRESS-NUMBER`, e.g., `HR-118-1234`)
-- **By topic**: `search_bills_semantic` for natural-language search (uses embeddings)
-- **By keyword**: `list_bills` with search parameter
-- Note: bill_id format uses TYPE prefix (HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES, SRES)
+- **By ID:** `get_bill`. IDs look like `TYPE-CONGRESS-NUMBER`, for example `HR-119-1234`. Types are HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES and SRES.
+- **By topic:** `search_bills_semantic` with the user's wording and close synonyms.
+- **By keyword, subject or sponsor:** `list_bills`.
 
-## Step 2: Legislative Profile
+## Step 2: Legislative record
 
-For each bill:
-- `get_bill` — title, summary, status, policy_area, subjects, sponsor
-- `get_bill_actions` — full legislative timeline (introduced, committee, floor, signed)
-- `get_bill_votes` — roll call votes, party breakdown, margin
+For each material bill, `get_bill` gives the title, summary, subjects, sponsor, cosponsors, actions, committees and official text links. `get_bill_votes` gives every roll call with each member's position.
 
-## Step 3: Follow the Sponsor's Money
+## Step 3: Sponsor funding
 
-This is the investigative core — who funds the bill's sponsors?
+- `get_bill_sponsor_funding` for the primary sponsor's campaign-finance context.
+- `get_politician` for the sponsor's full profile, and for the main cosponsors.
+- `get_donors_by_employer` for giving by employees of organizations that lobbied on the bill.
 
-- `get_bill_sponsor_funding` — top contributors to the sponsor's committee
-- `get_politician` for the sponsor — full financial profile
-- `get_donors_by_employer` — are employees of interested industries donating?
-- `check_relationship` between sponsor and major lobbying clients on this topic
+## Step 4: Lobbying
 
-For cosponsors: repeat the funding analysis for the top 3-5 cosponsors
+- `get_bill_lobbying` for filings whose issue text explicitly cites the bill.
+- `lobbying_by_topic` for the wider lobbying on the policy area.
+- `get_lobbying_client` for the largest clients.
 
-## Step 4: Who Lobbied on This?
+## Step 5: Outside spending and contracts
 
-- `get_bill_lobbying` — entities that specifically lobbied on this bill
-- `lobbying_by_topic` — broader lobbying landscape on the policy area
-- `list_lobbying_clients` — top spenders on the relevant issue code
-- For each top lobbying client: `check_relationship` with sponsor/cosponsors
+- `get_outside_spending` and `list_outside_spending_targets` for independent expenditures involving the sponsor and cosponsors.
+- `search_contracts` for federal contracts held by organizations that lobbied on the bill.
 
-## Step 5: Outside Spending Connection
+## Report
 
-- `get_outside_spending` for the sponsor — any independent expenditures?
-- `list_outside_spending_targets` — who faced the most outside spending?
-- Cross-reference: do outside spenders align with lobbying clients?
+### Legislative investigation: [bill title]
 
-## Step 6: Contract Implications
+- **Bill:** ID, title, status and latest action.
+- **Sponsor:** name, party and state, with entity_id.
+- **Timeline:** key actions with dates.
+- **Votes:** results by chamber and party.
+- **Lobbying:** clients whose filings cite the bill, with spending and filing links.
+- **Money:** sponsor funding and outside spending, labeled as association only.
 
-Some bills directly affect government contracting:
-- `search_contracts` for companies that lobbied on the bill
-- Compare: pre/post-bill contract awards to interested parties
+## Evidence rules
 
-## Report Format
-
-### Legislative Investigation: [Bill Title]
-
-**Bill**: [ID] — [Title] — Status: [current status]
-**Sponsor**: [Name] (entity_id) — [Party]-[State]
-**Timeline**: [key dates from bill_actions]
-
-**Who wants this bill?**
-- Lobbying clients: [list with spend amounts]
-- Industry donors to sponsor: [employer-grouped donations]
-- Outside spending groups: [if any]
-
-**Who opposes it?**
-- Opposing lobbying clients
-- Outside spending against sponsor
-
-**Money-vote alignment**:
-| Legislator | Vote | Top Industry Donors | Lobbying Contacts |
-|-----------|------|--------------------|--------------------|
-
-**Key questions**:
-- Did lobbying spending increase before key votes?
-- Do the sponsor's top donors benefit from the bill?
-- Are there dark money groups involved?
-
-**Citations**: bill_id, entity_ids, vote roll call IDs, dollar amounts with cycles
+- A lobbying citation doesn't show support or opposition.
+- Contributions don't establish causation or a quid pro quo.
+- State the Congresses searched.
+- Cite bill IDs, roll calls, entity_ids and filing links.

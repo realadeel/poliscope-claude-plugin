@@ -1,73 +1,52 @@
 ---
 name: detect-conflicts
-description: Detect potential conflicts of interest — stock trades vs committee assignments, donors vs votes, revolving door
-argument-hint: <politician name, company, or pattern like "pharma trades">
+description: Check a member of Congress for documented overlaps between stock trades, votes, sponsored bills, donors and lobbying
+argument-hint: <member of Congress, company, or pattern like "pharma trades">
 ---
 
-# Detect Conflicts of Interest
+# Check for Potential Conflicts of Interest
 
-Investigate potential conflicts for: **$ARGUMENTS**
+Look for documented overlaps for: **$ARGUMENTS**
 
-## Conflict Pattern 1: Stock Trades vs Committee Jurisdiction
+This skill finds records that overlap in time or subject. It does not decide whether anything improper happened.
 
-- `resolve_entity` → `get_politician` + `get_legislator` (note committee assignments)
-- `get_trades_by_politician` — all stock trades with dates and amounts
-- `get_trades_summary` — aggregate trading patterns
-- For each traded stock: `get_company` — does this company fall under the politician's committee jurisdiction?
-- `get_bill_votes` — did they vote on bills affecting companies they traded?
+## Step 1: Resolve the member
 
-**Red flags**: trades before committee hearings, trades in regulated industries matching committee assignment, unusual timing around legislative action
+- `resolve_entity`, then `get_politician` for campaign finance and `get_legislator` for terms, sponsored bills and votes.
+- Keep the FEC candidate ID and the Bioguide ID. Trades and votes use the Bioguide ID.
 
-## Conflict Pattern 2: Donor-Vote Alignment
+## Step 2: Trades and legislation
 
-- `get_politician` — top donors by industry/employer
-- `get_legislator_votes` — voting record
-- `get_bill_sponsor_funding` for bills they sponsored
-- `get_donors_by_employer` for major employer contributors
-- `check_relationship` between top donors and the politician
+- `get_trades_by_politician` for disclosed trades, with dates, owners and amount ranges.
+- For each company traded: `get_company` for its lobbying and contracts, and `get_trades_by_ticker` to see other members' trades in the same stock.
+- `get_legislator_votes` and `get_bill_votes` show how the member voted on bills that cite or affect that company.
+- `get_bill_lobbying` shows whether the company's filings cite those bills.
 
-**Red flags**: consistently voting in favor of top donors' interests, sponsoring bills that benefit major contributors
+## Step 3: Donors and votes
 
-## Conflict Pattern 3: Lobbying-Legislation Pipeline
+- `get_politician` for top contributors and employers.
+- `get_donors_by_employer` for giving by employees of companies that lobby on the member's bills.
+- `get_bill_sponsor_funding` for each bill the member sponsored.
+- `check_relationship` for documented links between a donor and the member.
 
-- `get_bill_lobbying` — who lobbied on bills the politician sponsored?
-- `get_lobbying_client` for those lobbyists — how much did they spend?
-- `check_relationship` — do lobbying clients also donate?
-- `search_contracts` — did lobbying clients receive contracts?
+## Step 4: Outside spending and dark money
 
-**Red flags**: sponsor introduces bill → industry lobbies → industry donates → bill passes → industry gets contracts
+- `get_outside_spending` and `list_outside_spending_targets` show independent expenditures for or against the member.
+- `search_dark_money` with each spender's name, and `get_dark_money_source` for a nonprofit's EIN, show documented nonprofit-to-committee traces.
 
-## Conflict Pattern 4: Revolving Door
+## Report
 
-- `get_lobbying_firm` — check if former legislators/staffers are registered lobbyists
-- `get_nonprofit_officers` — do politicians serve on nonprofit boards after leaving office?
-- Cross-reference lobbying firm employees with legislative staff records
+### Potential conflicts: [member]
 
-## Conflict Pattern 5: Dark Money Influence
+For each overlap:
+- **What overlaps:** for example, a trade in a company whose filings cite a bill the member voted on.
+- **Records:** dates, amount ranges, roll calls and filing links.
+- **Timing:** the sequence of dates, stated plainly.
+- **Other explanations:** for example, a spouse's account, a blind trust, or broad index holdings.
 
-- `get_outside_spending` — who spent independently for/against this politician?
-- For each outside spender: `get_dark_money_destination` — is it funded by dark money?
-- `get_dark_money_source` — trace back to the nonprofit source
-- `get_nonprofit_officers` — who controls the dark money nonprofit?
+## Evidence rules
 
-## Report Format
-
-### Conflict of Interest Analysis: [Subject]
-
-**Summary**: X potential conflicts identified, rated by severity
-
-For each conflict:
-> **[SEVERITY: HIGH/MEDIUM/LOW]** — [Pattern type]
->
-> **What**: [Description of the potential conflict]
-> **Evidence**: [Specific data points with amounts and dates]
-> **Timeline**: [Sequence of events suggesting conflict]
-> **Counterpoint**: [Legitimate explanations, if any]
-> **Citations**: [entity_ids, bill_ids, trade dates, dollar amounts]
-
-**Aggregate metrics**:
-- % of votes aligned with top donor interests
-- Trading volume in committee-jurisdiction stocks
-- Lobbying spend from entities that also donate
-
-**Important**: Flag patterns, not guilt. Correlation is not causation. Always note legitimate explanations.
+- Report overlaps, not guilt. Timing and association don't prove motive or wrongdoing.
+- Poliscope doesn't hold committee assignments. Don't assert committee jurisdiction unless a returned record supplies it.
+- Trade amounts are reported ranges. Senate disclosures may lag House ones; the tools report freshness.
+- Cite entity_ids, Bioguide IDs, roll calls and filing links.

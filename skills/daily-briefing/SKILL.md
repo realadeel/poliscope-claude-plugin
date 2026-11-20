@@ -1,63 +1,40 @@
 ---
 name: daily-briefing
-description: Generate a political influence briefing — top spenders, active lobbying, recent trades, and dark money activity
+description: Generate a political influence briefing — top fundraisers and PACs, outside spending, dark money, lobbying and congressional trades
 argument-hint: [optional: topic focus, cycle, or "latest"]
 ---
 
-# Daily Briefing
+# Political Influence Briefing
 
-Generate a political influence briefing. Focus: **$ARGUMENTS**
+Generate a briefing. Focus: **$ARGUMENTS**
 
-## Data Gathering (run in parallel)
+## Gather (in parallel where possible)
 
-Fetch the following simultaneously:
+1. **Scale:** `get_stats` for dataset totals and freshness.
+2. **Campaign finance:** `list_politicians` sorted by amount raised for the current cycle, and `list_committees` for the largest PACs.
+3. **Outside spending:** `get_outside_spending` for the cycle's totals and top spenders, and `list_outside_spending_targets` for the most targeted candidates.
+4. **Dark money:** `get_dark_money_summary` for totals, the largest sources and destinations, and trace methods.
+5. **Lobbying:** `lobbying_by_topic` for the focus topic, or for a few current topics if none was given.
+6. **Legislation:** `list_bills` sorted by latest action, or `search_bills_semantic` for the focus topic.
+7. **Trades:** `get_trades_by_ticker` for tickers tied to the focus, or `get_trades_by_politician` for members in the news.
 
-1. **Campaign Finance**: `list_politicians` (top fundraisers), `list_committees` (top PACs), `list_donors` (top donors)
-2. **Lobbying**: `get_lobbying_stats` (totals), `list_lobbying_clients` (top spenders), `list_lobbying_issues` (hot issues)
-3. **Dark Money**: `get_dark_money_summary` (totals), `list_dark_money` (recent traces)
-4. **Stock Trades**: `list_trades` (recent congressional trades)
-5. **Elections**: `get_elections_overview`, `list_election_races` (competitive races)
-6. **Outside Spending**: `list_outside_spending_targets` (most targeted candidates)
-7. **Legislation**: `list_bills` (recent bills), optionally `search_bills_semantic` for topic focus
+If a focus was given, keep only results related to it.
 
-If a topic focus was specified, filter/prioritize results related to that topic.
+## Report
 
-## Report Format
+### Political influence briefing
+*Generated [date] · Cycle [cycle]*
 
-### Political Influence Briefing
-*Generated: [date] | Cycle: [current cycle]*
+- **Campaign finance:** top fundraisers and PACs, with amounts and entity_ids.
+- **Outside spending:** the cycle total, top spenders, and the most targeted candidates, split into support and oppose.
+- **Dark money:** traced totals and the largest documented flows, each with its method and confidence.
+- **Lobbying:** the largest clients and issues for the focus.
+- **Legislation to watch:** recent bills with their latest action.
+- **Congressional trades:** notable disclosed trades, with reported amount ranges.
 
----
+## Evidence rules
 
-**Campaign Finance Snapshot**
-- Total raised across top committees: $X
-- Top 5 fundraisers with amounts
-- Notable donor patterns
-
-**Lobbying Pulse**
-- Total lobbying spend: $X (trend: up/down from prior cycle)
-- Hottest issue areas by spend
-- Top 3 clients and what they're lobbying on
-
-**Dark Money Watch**
-- Total dark money traced: $X across N flows
-- Largest recent transfers
-- Most-funded dark money destinations
-
-**Congressional Trading**
-- Recent notable trades
-- Any trades in sectors with pending legislation?
-
-**Election Landscape**
-- Most competitive races by fundraising differential
-- Outside spending hotspots
-- Top targeted candidates (support vs oppose)
-
-**Legislation to Watch**
-- Bills with most lobbying activity
-- Bills with most outside spending connections
-
----
-
-*All figures sourced from Poliscope API. Entity IDs provided for cross-referencing.*
-*Data covers FEC cycles 2000-2026, LDA lobbying, SEC insider transactions, IRS 990 filings.*
+- State each section's cycle or date range and its data freshness. Senate trade disclosures can lag House ones, and the tools say so.
+- Trade amounts are reported ranges, not exact values.
+- Association isn't evidence of motive or wrongdoing.
+- Cite entity_ids and the source links the tools return.

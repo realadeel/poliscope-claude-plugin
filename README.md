@@ -6,13 +6,11 @@ The plugin connects to the hosted Poliscope MCP server at `https://api.poliscope
 
 ## Install
 
-In Claude Code:
+In Claude, add Poliscope from the directory. In Claude Code:
 
 ```
 /plugin install poliscope --marketplace realadeel/poliscope-claude-plugin
 ```
-
-Or add the marketplace first with `/plugin marketplace add realadeel/poliscope-claude-plugin`, then run `/plugin install poliscope@poliscope`.
 
 ## Skills
 

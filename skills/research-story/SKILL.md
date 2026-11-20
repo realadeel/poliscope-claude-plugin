@@ -1,85 +1,55 @@
 ---
 name: research-story
-description: Research a news story or political claim using Poliscope data — find evidence, verify claims, add context
-argument-hint: <paste a news headline, URL, claim, or story description>
+description: Check a news story or political claim against Poliscope's public records — what the data confirms, contradicts or can't verify
+argument-hint: <a headline, claim, or story description>
 ---
 
-# Research Story
+# Research a Story
 
-Investigate and add data context to: **$ARGUMENTS**
+Check and add context to: **$ARGUMENTS**
 
-## Step 1: Extract Claims and Entities
+## Step 1: Break the claim into parts
 
-Parse the story/claim to identify:
-- **Entities**: people, organizations, committees, companies mentioned
-- **Claims**: specific assertions that can be verified with financial data
-- **Topics**: policy areas, industries, issues involved
-- **Time period**: when did this happen?
+List the people and organizations named, each specific claim that public records could test, the topics involved, and the time period.
 
-## Step 2: Resolve All Entities
+## Step 2: Resolve every entity
 
-For every entity mentioned:
-- `resolve_entity` to find entity_ids
-- Try alternate names if first attempt fails (e.g., "AIPAC" → "American Israel Public Affairs Committee")
-- Note: some entities may not be in Poliscope (foreign entities, state-level, private individuals)
-- Record which entities resolved and which didn't
+- `resolve_entity` for each name. Try the full name if an abbreviation fails, for example "American Israel Public Affairs Committee" for "AIPAC".
+- Record which names resolved and which didn't. State and local actors, foreign entities and private individuals may not be covered.
 
-## Step 3: Verify Specific Claims
+## Step 3: Test each claim
 
-For each verifiable claim, use the appropriate tool:
-
-| Claim type | Tools to verify |
-|-----------|----------------|
-| "X donated to Y" | `check_relationship`, `get_donor` |
+| Claim | Tools |
+|---|---|
+| "X donated to Y" | `check_relationship`, `get_donor`, `search_donors` |
+| "PAC X gave to candidates" | `analyze_pac_giving` |
 | "X spent $N lobbying" | `get_lobbying_client` |
-| "X voted for/against bill" | `get_bill_votes`, `get_legislator_votes` |
-| "X traded stock before vote" | `get_trades_by_politician`, `get_bill_votes` |
-| "X received contract" | `search_contracts` |
-| "Dark money funded X" | `get_dark_money_destination`, `search_dark_money` |
+| "X voted for or against a bill" | `get_bill_votes`, `get_legislator_votes` |
+| "X traded a stock before a vote" | `get_trades_by_politician`, `get_bill_votes` |
+| "X received a federal contract" | `search_contracts`, `get_contract` |
+| "Outside groups spent on X" | `get_outside_spending`, `list_outside_spending_targets` |
+| "Dark money funded X" | `search_dark_money`, `get_dark_money_source` |
 
-## Step 4: Add Missing Context
+## Step 4: Add missing context
 
-What does the story NOT mention that matters?
+- `get_bill_sponsor_funding` for who funds the legislators involved.
+- `lobbying_by_topic` for who else lobbies on the issue.
+- `search_bills_semantic` for related legislation.
 
-- `get_bill_sponsor_funding` — who else funds the legislators mentioned?
-- `lobbying_by_topic` — who else lobbies on this issue?
-- `get_donors_by_employer` — broader employer giving patterns
-- `get_outside_spending` — independent expenditure context
-- `search_bills_semantic` — related legislation not mentioned
+## Report
 
-## Step 5: Build the Evidence Package
+### Story check: [headline or claim]
 
-Categorize evidence:
-- **CONFIRMS**: data that supports the story's claims
-- **CONTRADICTS**: data that challenges the story's claims
-- **ADDS CONTEXT**: data the story missed that changes the picture
-- **UNVERIFIABLE**: claims that can't be checked with available data
+**Result:** confirmed, partly confirmed, contradicted, or can't be verified with these records.
 
-## Report Format
+| Claim | Result | Evidence | Source |
+|---|---|---|---|
 
-### Story Research: [Headline/Claim]
+- **Context the story leaves out:** with data and sources.
+- **Limits:** for example, federal records only, filings that lag, and dark-money traces that can't show undisclosed donors.
 
-**Verdict**: [Confirmed / Partially Confirmed / Unverified / Contradicted]
+## Evidence rules
 
-**Entity Resolution**:
-| Name in Story | Poliscope Entity | entity_id | Resolved? |
-|--------------|-----------------|-----------|-----------|
-
-**Claim Verification**:
-| Claim | Status | Evidence | Source |
-|-------|--------|----------|--------|
-
-**Missing Context**:
-- [Context point 1 with data]
-- [Context point 2 with data]
-
-**Data Limitations**:
-- FEC data covers federal only (not state/local)
-- Lobbying data from LDA filings (may not capture all activity)
-- Dark money traces are incomplete by definition
-- Data freshness: most recent cycle available
-
-**Raw Data Links**:
-- `https://poliscope.org/politicians/{id}`
-- `https://poliscope.org/donors/{id}`
-- `https://poliscope.org/committees/{id}`
+- Keep confirmed, contradicted, unsupported and unknown parts separate.
+- Records show association, not motive or causation.
+- Cite entity_ids and the source links the tools return.

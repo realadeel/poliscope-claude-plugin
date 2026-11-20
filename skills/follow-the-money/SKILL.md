@@ -1,72 +1,63 @@
 ---
 name: follow-the-money
-description: Trace the flow of money between political actors — donations, PAC spending, lobbying, contracts, and dark money
-argument-hint: <source and/or destination entity, or a question like "who funds Senator X">
+description: Trace the flow of money between political actors — contributions, PAC giving, outside spending, dark money, lobbying and contracts
+argument-hint: <source and/or destination, or a question like "who funds Senator X">
 ---
 
 # Follow the Money
 
-Trace money flows related to: **$ARGUMENTS**
+Trace money related to: **$ARGUMENTS**
 
-## Step 1: Identify the Players
+## Step 1: Identify the players
 
-- Resolve all entity names with `poliscope:resolve_entity`
-- Determine direction: are we tracing money IN (who funds X?) or OUT (where does X spend?)?
+- `resolve_entity` for each name. Never combine same-named people or organizations without a reviewed identity link.
+- Decide the direction: money **into** something (who funds X?) or **out of** it (where does X's money go?).
 
-## Step 2: Direct Contributions
+## Step 2: Direct contributions
 
-For money flowing TO a politician/committee:
-- `get_politician` or `get_committee` for top contributors
-- `list_donors` with entity_id filter for full donor list
-- `get_donors_by_employer` to find employer-bundled giving
-- `list_employer_totals` for aggregate employer view
-- `list_state_totals` + `list_zip_codes` for geographic patterns
+**Into a candidate or committee:**
+- `get_politician` for a candidate's totals, top contributors and employers, and contribution sizes and geography.
+- `get_committee` for a committee's receipts, top donors and recipients.
+- `search_donors` for individual contribution records.
 
-For money flowing FROM a donor/company:
-- `get_donor` for recipient breakdown
-- `search_donors` to find related donors (same employer, coworkers)
-- `get_donor_coworkers` for bundling network
+**Out of a donor, PAC or company:**
+- `get_donor` for an individual donor's recipients by cycle.
+- `analyze_pac_giving` for a PAC's complete candidate and party rankings across cycles.
+- `get_donors_by_employer` for contributions from a company's employees.
 
-## Step 3: Check Direct Relationships
+## Step 3: Documented relationships
 
-- `check_relationship` between source and destination entities
-- This returns: donations (total, count, cycles), lobbying overlap, contract connections
+- `check_relationship` reports documented links between two resolved entities, such as contributions, lobbying and contracts.
 
-## Step 4: Indirect Money (Dark Money + Outside Spending)
+## Step 4: Outside spending and dark money
 
-- `search_dark_money` for nonprofit-to-PAC flows
-- `get_dark_money_source` (nonprofit EIN) → which PACs received?
-- `get_dark_money_destination` (committee ID) → which nonprofits funded it?
-- `get_dark_money_summary` for system-wide totals
-- `get_outside_spending` for independent expenditures supporting/opposing candidates
-- `get_nonprofit_grants` to trace foundation → nonprofit → PAC chains
+- `get_outside_spending` and `list_outside_spending_targets` cover independent expenditures for and against candidates.
+- `search_dark_money` and `get_dark_money_source` show documented traces from nonprofits to political committees.
+- `get_nonprofit` and `get_nonprofit_grants` cover a nonprofit's IRS filings and the grants it paid, for chains such as foundation to 501(c)(4) to super PAC.
+- `get_dark_money_summary` gives overall totals for context.
 
-## Step 5: Spending Side
+## Step 5: Lobbying and contracts
 
-- `get_spending_summary` for how committees spend money
-- `list_spending_vendors` for vendor payments
-- `list_spending_trends` for temporal patterns
-- `get_spending_vendor` for specific vendor detail
+- `get_lobbying_client` for an organization's reported lobbying spending and firms.
+- `search_contracts` and `get_company` for federal contracts.
 
-## Step 6: Lobbying as Money
+## Report
 
-- `get_lobbying_client` to see how much an entity spends on lobbying
-- `get_lobbying_firm` to see which firms they hire
-- Cross-reference lobbyist clients with campaign contributors
+### Money trail: [description]
 
-## Report Format
-
-### Money Trail: [Description]
-
-**Flow diagram** (text-based):
 ```
-[Source] --$X,XXX--> [Intermediary] --$X,XXX--> [Destination]
+[Source] --$X--> [Intermediary] --$X--> [Destination]
 ```
 
-**Direct contributions**: amount, count, cycles, top donors/recipients
-**Indirect flows**: dark money paths, outside spending, bundling
-**Lobbying overlay**: same actors spending on lobbying AND donating?
-**Timeline**: when did the money flow? Before/after key votes or contracts?
-**Geographic concentration**: where is the money coming from?
+- **Direct contributions:** amounts, counts and cycles, with entity_ids.
+- **Indirect flows:** outside spending and dark-money traces, each with its method and confidence.
+- **Lobbying and contracts:** the same actors' lobbying spending and federal awards.
+- **Timeline:** when the money moved.
 
-**Citations**: every dollar figure must cite the API endpoint + entity_id + cycle
+## Evidence rules
+
+- Keep candidates, committees, offices and cycles separate. Never move totals between them.
+- A dark-money trace documents a recorded path. It can't reveal a nonprofit's undisclosed donors.
+- Missing data is unknown, not zero.
+- Association isn't evidence of motive, causation or wrongdoing.
+- Cite every dollar figure with its entity_id and cycle.

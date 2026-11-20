@@ -1,70 +1,53 @@
 ---
 name: analyze-lobbying
-description: Analyze lobbying activity by topic, client, firm, or legislator — who is lobbying whom on what issues
-argument-hint: <topic like "AI regulation", entity name, or question like "who lobbies on defense spending">
+description: Analyze lobbying activity by topic, client, lobbyist or bill — who lobbies on what, how much they report, and which bills they cite
+argument-hint: <topic like "AI regulation", a company or organization, or a bill like "HR-119-1234">
 ---
 
 # Analyze Lobbying
 
 Investigate lobbying related to: **$ARGUMENTS**
 
-## Step 1: Determine Entry Point
+## Step 1: Choose the entry point
 
-**Topic-based** (e.g., "AI regulation", "pharma pricing"):
-- `lobbying_by_topic` — maps free-text to LDA issue codes, returns top clients + spend
-- `list_lobbying_issues` — browse all issue codes if needed
-- `search_bills_semantic` — find related legislation
+**A topic or product** (for example "AI regulation" or "GLP-1 drugs"):
+- `lobbying_by_topic` with the user's wording. Keep its match scope: a narrow product query should not grow into a whole LDA issue category.
+- `search_bills_semantic` for legislation on the same topic.
 
-**Entity-based** (e.g., "Google", "Sen. Warren"):
-- `resolve_entity` to get entity_id
-- `get_lobbying_client` (if company/org) — who do they hire, how much, what issues?
-- `get_lobbying_firm` (if lobbying firm) — who are their clients?
-- `get_politician` — check if they receive donations from the same entities
+**A company or organization:**
+- `resolve_entity` for the exact entity.
+- `get_lobbying_client` for reported spending by year, issue codes, firms hired, government targets and bills cited in its filings.
 
-**Bill-based** (e.g., "HR-118-1234"):
-- `get_bill` for bill details
-- `get_bill_lobbying` — which entities lobbied on this specific bill?
+**A lobbyist:** `resolve_entity`, then `get_lobbyist`.
 
-## Step 2: Map the Lobbying Landscape
+**A bill:** `get_bill`, then `get_bill_lobbying` for filings whose issue text explicitly cites it.
 
-- `list_lobbying_clients` with issue filter — who are the biggest spenders on this topic?
-- `list_lobbying_firms` — which firms dominate this issue area?
-- `get_lobbying_stats` — system-wide statistics for context
+## Step 2: Map the landscape
 
-For each major client found:
-- `get_lobbying_client` for their full lobbying profile (spend by year, issues, firms hired)
-- `get_company` if they're a public company (revenue context for lobbying spend)
+- From the `lobbying_by_topic` results, open the largest clients with `get_lobbying_client`.
+- `get_company` adds a company's contracts, SEC filings and political contributions.
+- `get_stats` gives overall dataset totals for scale.
 
-## Step 3: Connect Lobbying to Donations
+## Step 3: Add campaign money
 
-This is the key investigative step — do lobbying clients also donate to legislators on relevant committees?
+- `get_donors_by_employer` shows contributions from people who list the client as their employer.
+- `get_bill_sponsor_funding` shows who funds a cited bill's primary sponsor.
+- `check_relationship` reports documented links between a client and a legislator.
 
-- For each major lobbying client:
-  - `get_donors_by_employer` — are employees also donating?
-  - `check_relationship` between the client and key legislators
-  - `get_bill_sponsor_funding` — does the bill's sponsor receive money from lobbying clients?
+## Report
 
-## Step 4: Identify the Revolving Door
+### Lobbying analysis: [topic or entity]
 
-- `get_lobbying_firm` — note lobbyist names
-- Cross-reference with `get_legislator` — are former staffers now lobbying?
-- Check `get_nonprofit_officers` — do lobbyists sit on nonprofit boards?
+- **Scale:** reported spending, number of filings and clients, and the years covered.
+- **Top clients:** ranked by client-reported spending, each with its entity_id.
+- **Firms hired:** with registrant-reported income where available.
+- **Issues and bills:** LDA issue codes and bills explicitly cited, with filing links.
+- **Campaign money:** employee contributions and sponsor funding, labeled as association only.
 
-## Report Format
+## Evidence rules
 
-### Lobbying Analysis: [Topic/Entity]
-
-**Scale**: $X total lobbying spend, Y registered lobbyists, Z active clients
-**Top clients**: ranked by spend with entity_ids
-**Top firms**: ranked by revenue on this topic
-**Issue codes**: LDA codes matched and their descriptions
-
-**Money-influence nexus**:
-| Client | Lobbying Spend | Donations to Relevant Legislators | Bills Lobbied |
-|--------|---------------|-----------------------------------|---------------|
-
-**Timeline**: spending trends over cycles (increasing/decreasing?)
-**Legislative targets**: which bills attracted the most lobbying?
-**Donation overlap**: % of lobbying clients who also donate to relevant committee members
-
-**Citations**: entity_ids, issue codes, bill IDs, cycle ranges
+- A filing's amount covers the whole filing. Don't assign all of it to one matched topic.
+- A bill citation doesn't show support or opposition.
+- Contributions and lobbying document association, not motive or influence.
+- Missing amounts are unknown, not $0.
+- Cite the LDA filing links and entity_ids the tools return.
