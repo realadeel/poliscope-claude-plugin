@@ -4,7 +4,11 @@
   "version": "1.1.1",
   "author": { "name": "Poliscope", "url": "https://www.poliscope.org" },
   "homepage": "https://www.poliscope.org/developers",
+  "repository": "https://github.com/realadeel/poliscope-claude-plugin",
+  "supportUrl": "https://www.poliscope.org/developers",
   "privacyPolicyUrl": "https://www.poliscope.org/privacy",
+  "termsOfServiceUrl": "https://www.poliscope.org/terms",
+  "keywords": ["politics", "campaign-finance", "lobbying", "fec", "congress", "public-records", "research"],
   "icon": ".claude-plugin/icon.png",
   "license": "MIT"
 }
